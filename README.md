@@ -18,3 +18,4 @@ PostgreSQL (using supabase)
 Project features Map integration with traffic surges, Auto QR code generate, A.I recommendation, Phone number and Email verification auth, Payment using paymongo, and etc.
 
 
+This project is a joint effort start app created by a 5 team member ViventaLabs.
