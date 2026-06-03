@@ -1,0 +1,1077 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.auth_group (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL UNIQUE,
+  CONSTRAINT auth_group_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.auth_group_permissions (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  group_id integer NOT NULL,
+  permission_id integer NOT NULL,
+  CONSTRAINT auth_group_permissions_pkey PRIMARY KEY (id),
+  CONSTRAINT auth_group_permissions_group_id_b120cbf9_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id),
+  CONSTRAINT auth_group_permissio_permission_id_84c5c92e_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id)
+);
+CREATE TABLE public.auth_permission (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  content_type_id integer NOT NULL,
+  codename character varying NOT NULL,
+  CONSTRAINT auth_permission_pkey PRIMARY KEY (id),
+  CONSTRAINT auth_permission_content_type_id_2f476e4b_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id)
+);
+CREATE TABLE public.auth_user (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  password character varying NOT NULL,
+  last_login timestamp with time zone,
+  is_superuser boolean NOT NULL,
+  username character varying NOT NULL UNIQUE,
+  first_name character varying NOT NULL,
+  last_name character varying NOT NULL,
+  email character varying NOT NULL,
+  is_staff boolean NOT NULL,
+  is_active boolean NOT NULL,
+  date_joined timestamp with time zone NOT NULL,
+  CONSTRAINT auth_user_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.auth_user_groups (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  user_id integer NOT NULL,
+  group_id integer NOT NULL,
+  CONSTRAINT auth_user_groups_pkey PRIMARY KEY (id),
+  CONSTRAINT auth_user_groups_user_id_6a12ed8b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id),
+  CONSTRAINT auth_user_groups_group_id_97559544_fk_auth_group_id FOREIGN KEY (group_id) REFERENCES public.auth_group(id)
+);
+CREATE TABLE public.auth_user_user_permissions (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  user_id integer NOT NULL,
+  permission_id integer NOT NULL,
+  CONSTRAINT auth_user_user_permissions_pkey PRIMARY KEY (id),
+  CONSTRAINT auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id),
+  CONSTRAINT auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm FOREIGN KEY (permission_id) REFERENCES public.auth_permission(id)
+);
+CREATE TABLE public.bookings_activebooking (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  before_picture_service character varying,
+  is_job_done boolean NOT NULL,
+  after_picture_service character varying,
+  is_rescheduled boolean NOT NULL,
+  reason text,
+  new_time timestamp with time zone,
+  new_date timestamp with time zone,
+  started_at timestamp with time zone,
+  booking_id bigint NOT NULL UNIQUE,
+  stage character varying NOT NULL,
+  stage_updated_at timestamp with time zone NOT NULL,
+  paused_at timestamp with time zone,
+  total_pause_duration interval NOT NULL,
+  pre_reschedule_status character varying,
+  proposed_date timestamp with time zone,
+  reschedule_requested_by_id bigint,
+  CONSTRAINT bookings_activebooking_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_activebooki_booking_id_878d0ca2_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_activebooki_reschedule_requested_968d87d6_fk_users_acc FOREIGN KEY (reschedule_requested_by_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.bookings_activebookingphoto (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  photo character varying NOT NULL,
+  photo_type character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  active_booking_id bigint NOT NULL,
+  CONSTRAINT bookings_activebookingphoto_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_activebooki_active_booking_id_cf5f1413_fk_bookings_ FOREIGN KEY (active_booking_id) REFERENCES public.bookings_activebooking(id)
+);
+CREATE TABLE public.bookings_amendmentitem (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  item_id uuid,
+  action_type character varying NOT NULL,
+  proposed_changes jsonb NOT NULL,
+  original_snapshot jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  amendment_id bigint NOT NULL,
+  original_item_id bigint,
+  CONSTRAINT bookings_amendmentitem_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_amendmentit_amendment_id_fb8657c6_fk_bookings_ FOREIGN KEY (amendment_id) REFERENCES public.bookings_quotationamendment(id),
+  CONSTRAINT bookings_amendmentit_original_item_id_00189abc_fk_bookings_ FOREIGN KEY (original_item_id) REFERENCES public.bookings_quotationitem(id)
+);
+CREATE TABLE public.bookings_backjob (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  status character varying NOT NULL,
+  reason text,
+  images jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL,
+  requested_by_id bigint,
+  CONSTRAINT bookings_backjob_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_backjob_requested_by_id_e2dfa7af_fk_users_account_id FOREIGN KEY (requested_by_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_backjob_booking_id_5118c789_fk_bookings_booking_id FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id)
+);
+CREATE TABLE public.bookings_backjobrequest (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reason text NOT NULL,
+  evidence character varying,
+  status character varying NOT NULL,
+  mechanic_notes text,
+  created_at timestamp with time zone NOT NULL,
+  resolved_at timestamp with time zone,
+  booking_id bigint NOT NULL,
+  mechanic_id bigint,
+  requested_by_id bigint NOT NULL,
+  CONSTRAINT bookings_backjobrequest_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_backjobrequ_booking_id_de70f877_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_backjobrequ_mechanic_id_352ef5e4_fk_users_acc FOREIGN KEY (mechanic_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_backjobrequ_requested_by_id_e5d50d50_fk_users_acc FOREIGN KEY (requested_by_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.bookings_booking (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  status character varying NOT NULL,
+  amount_fee numeric NOT NULL,
+  booked_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  completed_at timestamp with time zone,
+  request_id bigint NOT NULL UNIQUE,
+  convenience_fee numeric,
+  distance_km numeric,
+  eta_minutes integer CHECK (eta_minutes >= 0),
+  fee_locked_at timestamp with time zone,
+  traffic_surcharge numeric,
+  payment_status character varying NOT NULL,
+  dispute_status character varying NOT NULL DEFAULT 'none'::character varying,
+  booking_date timestamp with time zone,
+  CONSTRAINT bookings_booking_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_booking_request_id_5b86f146_fk_bookings_request_id FOREIGN KEY (request_id) REFERENCES public.bookings_request(id)
+);
+CREATE TABLE public.bookings_bookingtimeline (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  stage character varying NOT NULL,
+  description character varying NOT NULL,
+  timestamp timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL,
+  CONSTRAINT bookings_bookingtimeline_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_bookingtime_booking_id_254fc9c2_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id)
+);
+CREATE TABLE public.bookings_broadcastoffer (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  status character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  responded_at timestamp with time zone,
+  mechanic_id bigint,
+  broadcast_request_id bigint NOT NULL,
+  distance_km numeric,
+  estimated_price numeric,
+  mechanic_latitude numeric,
+  mechanic_longitude numeric,
+  convenience_fee numeric,
+  estimated_eta_minutes integer CHECK (estimated_eta_minutes >= 0),
+  traffic_level character varying,
+  shop_id bigint,
+  CONSTRAINT bookings_broadcastoffer_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_broadcastof_broadcast_request_id_1065aa71_fk_bookings_ FOREIGN KEY (broadcast_request_id) REFERENCES public.bookings_broadcastrequest(id),
+  CONSTRAINT bookings_broadcastoffer_shop_id_db92e2ff_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id),
+  CONSTRAINT bookings_broadcastof_mechanic_id_42f62d41_fk_users_mec FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id)
+);
+CREATE TABLE public.bookings_broadcastrequest (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  description text NOT NULL,
+  concern_picture character varying,
+  status character varying NOT NULL,
+  latitude numeric NOT NULL,
+  longitude numeric NOT NULL,
+  expires_at timestamp with time zone NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  accepted_at timestamp with time zone,
+  request_id bigint NOT NULL UNIQUE,
+  search_radius_km integer CHECK (search_radius_km >= 0),
+  CONSTRAINT bookings_broadcastrequest_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_broadcastre_request_id_6d648d94_fk_bookings_ FOREIGN KEY (request_id) REFERENCES public.bookings_request(id)
+);
+CREATE TABLE public.bookings_broadcastrequest_services (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  broadcastrequest_id bigint NOT NULL,
+  service_id bigint NOT NULL,
+  CONSTRAINT bookings_broadcastrequest_services_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_broadcastre_broadcastrequest_id_abadd3e0_fk_bookings_ FOREIGN KEY (broadcastrequest_id) REFERENCES public.bookings_broadcastrequest(id),
+  CONSTRAINT bookings_broadcastre_service_id_c4b01a73_fk_services_ FOREIGN KEY (service_id) REFERENCES public.services_service(id)
+);
+CREATE TABLE public.bookings_broadcastrequestaddon (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  broadcast_request_id bigint NOT NULL,
+  service_add_on_id bigint NOT NULL,
+  CONSTRAINT bookings_broadcastrequestaddon_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_broadcastre_broadcast_request_id_0223da6f_fk_bookings_ FOREIGN KEY (broadcast_request_id) REFERENCES public.bookings_broadcastrequest(id),
+  CONSTRAINT bookings_broadcastre_service_add_on_id_3539c122_fk_services_ FOREIGN KEY (service_add_on_id) REFERENCES public.services_serviceaddon(id)
+);
+CREATE TABLE public.bookings_cancelbooking (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reason text,
+  cancelled_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL UNIQUE,
+  cancelled_by_id bigint NOT NULL,
+  CONSTRAINT bookings_cancelbooking_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_cancelbooki_booking_id_65b12247_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_cancelbooki_cancelled_by_id_8e08cdde_fk_users_acc FOREIGN KEY (cancelled_by_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.bookings_cashremittance (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  amount numeric NOT NULL,
+  status character varying NOT NULL,
+  reminders_count integer NOT NULL CHECK (reminders_count >= 0),
+  last_reminded_at timestamp with time zone,
+  received_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL UNIQUE,
+  lead_mechanic_id bigint NOT NULL,
+  shop_id bigint NOT NULL,
+  CONSTRAINT bookings_cashremittance_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_cashremitta_booking_id_30f69ac5_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_cashremitta_lead_mechanic_id_2282a2a3_fk_users_acc FOREIGN KEY (lead_mechanic_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_cashremittance_shop_id_082020eb_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.bookings_completebooking (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  completed_at timestamp with time zone NOT NULL,
+  total_amount numeric NOT NULL,
+  notes text,
+  booking_id bigint NOT NULL UNIQUE,
+  CONSTRAINT bookings_completebooking_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_completeboo_booking_id_8c37974a_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id)
+);
+CREATE TABLE public.bookings_customrequest (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  description text NOT NULL,
+  request_status character varying NOT NULL,
+  concern_picture character varying,
+  quoted_price numeric,
+  providers_note text,
+  request_id bigint NOT NULL UNIQUE,
+  CONSTRAINT bookings_customrequest_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_customreque_request_id_f5b01dbd_fk_bookings_ FOREIGN KEY (request_id) REFERENCES public.bookings_request(id)
+);
+CREATE TABLE public.bookings_directrequest (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  request_status character varying NOT NULL,
+  service_id bigint NOT NULL,
+  request_id bigint NOT NULL UNIQUE,
+  CONSTRAINT bookings_directrequest_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_directreque_service_id_bcf21817_fk_services_ FOREIGN KEY (service_id) REFERENCES public.services_service(id),
+  CONSTRAINT bookings_directreque_request_id_7d9fceb6_fk_bookings_ FOREIGN KEY (request_id) REFERENCES public.bookings_request(id)
+);
+CREATE TABLE public.bookings_directrequestaddon (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  service_add_on_id bigint NOT NULL,
+  request_id bigint NOT NULL,
+  CONSTRAINT bookings_directrequestaddon_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_directreque_service_add_on_id_c655ff66_fk_services_ FOREIGN KEY (service_add_on_id) REFERENCES public.services_serviceaddon(id),
+  CONSTRAINT bookings_directreque_request_id_672c16ad_fk_bookings_ FOREIGN KEY (request_id) REFERENCES public.bookings_request(id)
+);
+CREATE TABLE public.bookings_directrequestserviceline (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  sort_order smallint NOT NULL CHECK (sort_order >= 0),
+  request_id bigint NOT NULL,
+  service_id bigint NOT NULL,
+  CONSTRAINT bookings_directrequestserviceline_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_directreque_request_id_2d6bb696_fk_bookings_ FOREIGN KEY (request_id) REFERENCES public.bookings_request(id),
+  CONSTRAINT bookings_directreque_service_id_9ec5375a_fk_services_ FOREIGN KEY (service_id) REFERENCES public.services_service(id)
+);
+CREATE TABLE public.bookings_disputebooking (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  issue_description text NOT NULL,
+  issue_picture character varying,
+  resolution_notes text,
+  status character varying NOT NULL,
+  amount_refunded numeric,
+  created_at timestamp with time zone NOT NULL,
+  resolved_at timestamp with time zone,
+  admin_id bigint,
+  booking_id bigint NOT NULL UNIQUE,
+  complainer_id bigint NOT NULL,
+  complaint_against_id bigint NOT NULL,
+  refund_receiver_id bigint,
+  is_client_verified boolean NOT NULL,
+  refund_receipt_image character varying,
+  refund_account_number character varying,
+  refund_method character varying,
+  mechanic_defense_description text,
+  mechanic_defense_picture character varying,
+  CONSTRAINT bookings_disputebooking_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_disputebooking_admin_id_f65eccf8_fk_users_admin_id FOREIGN KEY (admin_id) REFERENCES public.users_admin(id),
+  CONSTRAINT bookings_disputebook_booking_id_1861a2f1_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_disputebook_complainer_id_1024277d_fk_users_acc FOREIGN KEY (complainer_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_disputebook_complaint_against_id_2dec2b1a_fk_users_acc FOREIGN KEY (complaint_against_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_disputebook_refund_receiver_id_232dbfe7_fk_users_acc FOREIGN KEY (refund_receiver_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.bookings_disputeimage (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  image character varying NOT NULL,
+  uploaded_at timestamp with time zone NOT NULL,
+  dispute_id bigint NOT NULL,
+  CONSTRAINT bookings_disputeimage_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_disputeimag_dispute_id_9e954415_fk_bookings_ FOREIGN KEY (dispute_id) REFERENCES public.bookings_disputebooking(id)
+);
+CREATE TABLE public.bookings_emergencyrequest (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  description text,
+  concern_picture character varying,
+  providers_note text,
+  request_id bigint NOT NULL UNIQUE,
+  CONSTRAINT bookings_emergencyrequest_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_emergencyre_request_id_83dd35b4_fk_bookings_ FOREIGN KEY (request_id) REFERENCES public.bookings_request(id)
+);
+CREATE TABLE public.bookings_emergencyrequestphoto (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  photo character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  emergency_request_id bigint NOT NULL,
+  CONSTRAINT bookings_emergencyrequestphoto_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_emergencyre_emergency_request_id_645dab3c_fk_bookings_ FOREIGN KEY (emergency_request_id) REFERENCES public.bookings_emergencyrequest(id)
+);
+CREATE TABLE public.bookings_mechaniclocation (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  latitude numeric NOT NULL,
+  longitude numeric NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL UNIQUE,
+  CONSTRAINT bookings_mechaniclocation_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_mechanicloc_booking_id_d73d7cdf_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id)
+);
+CREATE TABLE public.bookings_paymentinstallment (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  installment_type character varying NOT NULL,
+  amount numeric NOT NULL,
+  status character varying NOT NULL,
+  is_released boolean NOT NULL,
+  paid_at timestamp with time zone,
+  external_reference character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL,
+  CONSTRAINT bookings_paymentinstallment_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_paymentinst_booking_id_b6e899ff_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id)
+);
+CREATE TABLE public.bookings_paymentqrtoken (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  token uuid NOT NULL UNIQUE,
+  is_used boolean NOT NULL,
+  expires_at timestamp with time zone NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL UNIQUE,
+  CONSTRAINT bookings_paymentqrtoken_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_paymentqrto_booking_id_38950d06_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id)
+);
+CREATE TABLE public.bookings_paymenttransaction (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  amount numeric NOT NULL,
+  method character varying NOT NULL,
+  reference character varying,
+  status character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL,
+  installment_id bigint,
+  CONSTRAINT bookings_paymenttransaction_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_paymenttran_booking_id_2458f1d3_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_paymenttran_installment_id_b70153cd_fk_bookings_ FOREIGN KEY (installment_id) REFERENCES public.bookings_paymentinstallment(id)
+);
+CREATE TABLE public.bookings_quotation (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  notes text,
+  total_amount numeric NOT NULL,
+  is_final boolean NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL UNIQUE,
+  mechanic_id bigint NOT NULL,
+  status character varying NOT NULL,
+  backjob_discount numeric NOT NULL,
+  final_labor_total numeric NOT NULL,
+  is_backjob boolean NOT NULL,
+  original_labor_cost numeric NOT NULL,
+  CONSTRAINT bookings_quotation_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_quotation_booking_id_8edd8caf_fk_bookings_booking_id FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_quotation_mechanic_id_1ceeaa29_fk_users_account_id FOREIGN KEY (mechanic_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.bookings_quotationamendment (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  status character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  mechanic_id bigint NOT NULL,
+  quotation_id bigint NOT NULL,
+  CONSTRAINT bookings_quotationamendment_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_quotationam_mechanic_id_85c85966_fk_users_acc FOREIGN KEY (mechanic_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_quotationam_quotation_id_63e6f647_fk_bookings_ FOREIGN KEY (quotation_id) REFERENCES public.bookings_quotation(id)
+);
+CREATE TABLE public.bookings_quotationitem (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  description character varying,
+  quantity integer NOT NULL CHECK (quantity >= 0),
+  unit_price numeric NOT NULL,
+  quotation_id bigint NOT NULL,
+  service_id bigint,
+  service_add_on_id bigint,
+  status character varying NOT NULL,
+  change_type character varying,
+  previous_description character varying,
+  previous_quantity integer CHECK (previous_quantity >= 0),
+  previous_unit_price numeric,
+  line_kind character varying NOT NULL,
+  source character varying,
+  purchase_receipt_image character varying,
+  receipt_submitted_at timestamp with time zone,
+  is_backjob_line boolean NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  backjob_id bigint,
+  CONSTRAINT bookings_quotationitem_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_quotationit_quotation_id_3ee1126b_fk_bookings_ FOREIGN KEY (quotation_id) REFERENCES public.bookings_quotation(id),
+  CONSTRAINT bookings_quotationit_service_id_d971539c_fk_services_ FOREIGN KEY (service_id) REFERENCES public.services_service(id),
+  CONSTRAINT bookings_quotationit_service_add_on_id_dc6680db_fk_services_ FOREIGN KEY (service_add_on_id) REFERENCES public.services_serviceaddon(id),
+  CONSTRAINT bookings_quotationit_backjob_id_4438e96c_fk_bookings_ FOREIGN KEY (backjob_id) REFERENCES public.bookings_backjob(id)
+);
+CREATE TABLE public.bookings_receipt (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  payment_received boolean NOT NULL,
+  receipt_image character varying,
+  created_at timestamp with time zone NOT NULL,
+  booking_id bigint NOT NULL UNIQUE,
+  payment_method character varying NOT NULL,
+  transaction_id character varying,
+  ewallet_source_id character varying,
+  ewallet_type character varying,
+  mechanic_payout numeric,
+  paid_at timestamp with time zone,
+  platform_fee numeric,
+  CONSTRAINT bookings_receipt_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_receipt_booking_id_2c4ff2c1_fk_bookings_booking_id FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id)
+);
+CREATE TABLE public.bookings_request (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  request_type character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  client_id bigint NOT NULL,
+  provider_id bigint,
+  service_location_id bigint,
+  shop_id bigint,
+  vehicle_brand character varying,
+  vehicle_model character varying,
+  vehicle_type character varying,
+  vehicle_description text,
+  scheduled_time timestamp with time zone,
+  CONSTRAINT bookings_request_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_request_client_id_a787eb32_fk_users_client_id FOREIGN KEY (client_id) REFERENCES public.users_client(id),
+  CONSTRAINT bookings_request_provider_id_f921ba67_fk_users_account_id FOREIGN KEY (provider_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_request_service_location_id_d259dd29_fk_bookings_ FOREIGN KEY (service_location_id) REFERENCES public.bookings_servicelocation(id),
+  CONSTRAINT bookings_request_shop_id_f55734ba_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.bookings_requestassignment (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  assigned_at timestamp with time zone NOT NULL,
+  role character varying NOT NULL,
+  mechanic_id bigint NOT NULL,
+  request_id bigint NOT NULL,
+  CONSTRAINT bookings_requestassignment_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_requestassi_mechanic_id_75d9caa7_fk_users_acc FOREIGN KEY (mechanic_id) REFERENCES public.users_account(id),
+  CONSTRAINT bookings_requestassi_request_id_097256e1_fk_bookings_ FOREIGN KEY (request_id) REFERENCES public.bookings_request(id)
+);
+CREATE TABLE public.bookings_reworkbooking (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reason text,
+  created_at timestamp with time zone NOT NULL,
+  completed_at timestamp with time zone,
+  booking_id bigint NOT NULL UNIQUE,
+  requested_by_id bigint NOT NULL,
+  CONSTRAINT bookings_reworkbooking_pkey PRIMARY KEY (id),
+  CONSTRAINT bookings_reworkbooki_booking_id_303881e5_fk_bookings_ FOREIGN KEY (booking_id) REFERENCES public.bookings_booking(id),
+  CONSTRAINT bookings_reworkbooki_requested_by_id_5a90f0d3_fk_users_acc FOREIGN KEY (requested_by_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.bookings_servicelocation (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  street_name character varying NOT NULL,
+  subdivision_village character varying,
+  barangay character varying NOT NULL,
+  city_municipality character varying NOT NULL,
+  landmark character varying,
+  latitude numeric,
+  longitude numeric,
+  CONSTRAINT bookings_servicelocation_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.chat_conversation (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  title character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  booking_id integer UNIQUE,
+  CONSTRAINT chat_conversation_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.chat_conversation_participants (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  conversation_id bigint NOT NULL,
+  account_id bigint NOT NULL,
+  CONSTRAINT chat_conversation_participants_pkey PRIMARY KEY (id),
+  CONSTRAINT chat_conversation_pa_conversation_id_f3ae152d_fk_chat_conv FOREIGN KEY (conversation_id) REFERENCES public.chat_conversation(id),
+  CONSTRAINT chat_conversation_pa_account_id_66d463d5_fk_users_acc FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.chat_message (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  content text NOT NULL,
+  is_read boolean NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  conversation_id bigint NOT NULL,
+  sender_id bigint,
+  CONSTRAINT chat_message_pkey PRIMARY KEY (id),
+  CONSTRAINT chat_message_conversation_id_a1207bf4_fk_chat_conversation_id FOREIGN KEY (conversation_id) REFERENCES public.chat_conversation(id),
+  CONSTRAINT chat_message_sender_id_991c686c_fk_users_account_id FOREIGN KEY (sender_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.django_admin_log (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  action_time timestamp with time zone NOT NULL,
+  object_id text,
+  object_repr character varying NOT NULL,
+  action_flag smallint NOT NULL CHECK (action_flag >= 0),
+  change_message text NOT NULL,
+  content_type_id integer,
+  user_id integer NOT NULL,
+  CONSTRAINT django_admin_log_pkey PRIMARY KEY (id),
+  CONSTRAINT django_admin_log_content_type_id_c4bce8eb_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id),
+  CONSTRAINT django_admin_log_user_id_c564eba6_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES public.auth_user(id)
+);
+CREATE TABLE public.django_content_type (
+  id integer GENERATED ALWAYS AS IDENTITY NOT NULL,
+  app_label character varying NOT NULL,
+  model character varying NOT NULL,
+  CONSTRAINT django_content_type_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.django_migrations (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  app character varying NOT NULL,
+  name character varying NOT NULL,
+  applied timestamp with time zone NOT NULL,
+  CONSTRAINT django_migrations_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.django_session (
+  session_key character varying NOT NULL,
+  session_data text NOT NULL,
+  expire_date timestamp with time zone NOT NULL,
+  CONSTRAINT django_session_pkey PRIMARY KEY (session_key)
+);
+CREATE TABLE public.notification_notification (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  title character varying NOT NULL,
+  message text NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  receiver_id bigint NOT NULL,
+  is_read boolean NOT NULL,
+  payload jsonb NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  correlation_key character varying,
+  CONSTRAINT notification_notification_pkey PRIMARY KEY (id),
+  CONSTRAINT notification_notific_receiver_id_373413bd_fk_users_acc FOREIGN KEY (receiver_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.pricing_pricingconfiguration (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  base_token_price numeric NOT NULL,
+  min_token_purchase integer NOT NULL,
+  max_token_purchase integer NOT NULL,
+  base_distance_fee numeric NOT NULL,
+  price_per_km numeric NOT NULL,
+  free_distance_km numeric NOT NULL,
+  traffic_low_multiplier numeric NOT NULL,
+  traffic_medium_multiplier numeric NOT NULL,
+  traffic_high_multiplier numeric NOT NULL,
+  convenience_fee_percentage numeric NOT NULL,
+  convenience_fee_fixed numeric NOT NULL,
+  min_job_price numeric NOT NULL,
+  platform_commission_percentage numeric NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  updated_by character varying NOT NULL,
+  token_packages jsonb NOT NULL,
+  token_deduction_percentage numeric NOT NULL,
+  disbursement_fee numeric NOT NULL,
+  CONSTRAINT pricing_pricingconfiguration_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.services_mechanicservice (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  mechanic_id bigint NOT NULL,
+  service_id bigint NOT NULL,
+  price numeric NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  CONSTRAINT services_mechanicservice_pkey PRIMARY KEY (id),
+  CONSTRAINT services_mechanicser_mechanic_id_c5df590d_fk_users_mec FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id),
+  CONSTRAINT services_mechanicser_service_id_f1a5668f_fk_services_ FOREIGN KEY (service_id) REFERENCES public.services_service(id)
+);
+CREATE TABLE public.services_mechanicspecialty (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  requested_at timestamp with time zone NOT NULL,
+  mechanic_id bigint NOT NULL,
+  specialty_id bigint NOT NULL,
+  approved_at timestamp with time zone,
+  rejection_reason text,
+  status character varying NOT NULL,
+  proof_document character varying,
+  source_description text,
+  source_type character varying NOT NULL,
+  CONSTRAINT services_mechanicspecialty_pkey PRIMARY KEY (id),
+  CONSTRAINT services_mechanicspe_mechanic_id_b8a44be0_fk_users_mec FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id),
+  CONSTRAINT services_mechanicspe_specialty_id_f9652922_fk_services_ FOREIGN KEY (specialty_id) REFERENCES public.services_specialty(id)
+);
+CREATE TABLE public.services_service (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  description text NOT NULL,
+  service_picture character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  category_id bigint,
+  minimum_price numeric NOT NULL,
+  CONSTRAINT services_service_pkey PRIMARY KEY (id),
+  CONSTRAINT services_service_category_id_e15f8b7e_fk_services_ FOREIGN KEY (category_id) REFERENCES public.services_servicecategory(id)
+);
+CREATE TABLE public.services_serviceaddon (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  description text NOT NULL,
+  price numeric NOT NULL,
+  service_id bigint NOT NULL,
+  shop_id bigint,
+  mechanic_id bigint,
+  CONSTRAINT services_serviceaddon_pkey PRIMARY KEY (id),
+  CONSTRAINT services_serviceaddo_service_id_fd30f992_fk_services_ FOREIGN KEY (service_id) REFERENCES public.services_service(id),
+  CONSTRAINT services_serviceaddon_shop_id_6a0cc9b6_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id),
+  CONSTRAINT services_serviceaddon_mechanic_id_4ec648d9_fk_users_mechanic_id FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id)
+);
+CREATE TABLE public.services_servicecategory (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  worth_token numeric NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  CONSTRAINT services_servicecategory_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.services_servicetag (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  service_id bigint NOT NULL,
+  tag_id bigint NOT NULL,
+  CONSTRAINT services_servicetag_pkey PRIMARY KEY (id),
+  CONSTRAINT services_servicetag_service_id_369d1ec6_fk_services_service_id FOREIGN KEY (service_id) REFERENCES public.services_service(id),
+  CONSTRAINT services_servicetag_tag_id_48956fb7_fk_services_tag_id FOREIGN KEY (tag_id) REFERENCES public.services_tag(id)
+);
+CREATE TABLE public.services_shopservice (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  service_id bigint NOT NULL,
+  shop_id bigint NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  price numeric NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  CONSTRAINT services_shopservice_pkey PRIMARY KEY (id),
+  CONSTRAINT services_shopservice_service_id_a4d905cf_fk_services_service_id FOREIGN KEY (service_id) REFERENCES public.services_service(id),
+  CONSTRAINT services_shopservice_shop_id_53f59944_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.services_shopservicemechanic (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  mechanic_id bigint NOT NULL,
+  shop_service_id bigint NOT NULL,
+  CONSTRAINT services_shopservicemechanic_pkey PRIMARY KEY (id),
+  CONSTRAINT services_shopservice_mechanic_id_23f1b293_fk_users_mec FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id),
+  CONSTRAINT services_shopservice_shop_service_id_5d731dc0_fk_services_ FOREIGN KEY (shop_service_id) REFERENCES public.services_shopservice(id)
+);
+CREATE TABLE public.services_shopspecialty (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  requested_at timestamp with time zone NOT NULL,
+  shop_id bigint NOT NULL,
+  specialty_id bigint NOT NULL,
+  approved_at timestamp with time zone,
+  rejection_reason text,
+  status character varying NOT NULL,
+  proof_document character varying,
+  source_description text,
+  source_type character varying NOT NULL,
+  CONSTRAINT services_shopspecialty_pkey PRIMARY KEY (id),
+  CONSTRAINT services_shopspecialty_shop_id_fe9362bf_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id),
+  CONSTRAINT services_shopspecial_specialty_id_d7ba1d8f_fk_services_ FOREIGN KEY (specialty_id) REFERENCES public.services_specialty(id)
+);
+CREATE TABLE public.services_specialty (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  description text NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  CONSTRAINT services_specialty_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.services_tag (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  CONSTRAINT services_tag_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.shops_shop (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  shop_name character varying NOT NULL,
+  contact_number character varying,
+  email character varying,
+  website character varying,
+  description text,
+  service_banner character varying,
+  is_verified boolean NOT NULL,
+  status character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  shop_owner_id bigint NOT NULL UNIQUE,
+  CONSTRAINT shops_shop_pkey PRIMARY KEY (id),
+  CONSTRAINT shops_shop_shop_owner_id_3a01cb19_fk_users_shopowner_id FOREIGN KEY (shop_owner_id) REFERENCES public.users_shopowner(id)
+);
+CREATE TABLE public.shops_shopdocument (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  document_name character varying NOT NULL,
+  document_type character varying NOT NULL,
+  document_file character varying NOT NULL,
+  date_issued date,
+  date_expiry date,
+  uploaded_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  shop_id bigint NOT NULL,
+  CONSTRAINT shops_shopdocument_pkey PRIMARY KEY (id),
+  CONSTRAINT shops_shopdocument_shop_id_3df4cf92_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.shops_shopmechanic (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  date_joined timestamp with time zone NOT NULL,
+  mechanic_id bigint NOT NULL,
+  shop_id bigint NOT NULL,
+  is_active boolean NOT NULL,
+  CONSTRAINT shops_shopmechanic_pkey PRIMARY KEY (id),
+  CONSTRAINT shops_shopmechanic_mechanic_id_bd0a0c62_fk_users_mechanic_id FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id),
+  CONSTRAINT shops_shopmechanic_shop_id_937bc376_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.shops_shopownerdocument (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  document_name character varying NOT NULL,
+  document_type character varying NOT NULL,
+  document_file character varying NOT NULL,
+  date_issued date,
+  date_expiry date,
+  uploaded_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  shop_owner_id bigint NOT NULL,
+  CONSTRAINT shops_shopownerdocument_pkey PRIMARY KEY (id),
+  CONSTRAINT shops_shopownerdocum_shop_owner_id_20edb94c_fk_users_sho FOREIGN KEY (shop_owner_id) REFERENCES public.users_shopowner(id)
+);
+CREATE TABLE public.users_account (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  lastname character varying NOT NULL,
+  firstname character varying NOT NULL,
+  middlename character varying,
+  email character varying UNIQUE,
+  date_of_birth date,
+  gender character varying,
+  username character varying NOT NULL UNIQUE,
+  password character varying NOT NULL,
+  is_active boolean NOT NULL,
+  is_verified boolean NOT NULL,
+  last_login timestamp with time zone,
+  last_active_role character varying,
+  deactivated_at timestamp with time zone,
+  payout_method character varying,
+  payout_number character varying,
+  CONSTRAINT users_account_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.users_accountaddress (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  house_building_number character varying,
+  street_name character varying NOT NULL,
+  subdivision_village character varying,
+  barangay character varying NOT NULL,
+  city_municipality character varying NOT NULL,
+  province character varying NOT NULL,
+  region character varying NOT NULL,
+  postal_code character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  formatted_address text,
+  is_main boolean NOT NULL,
+  label character varying NOT NULL,
+  lat double precision,
+  lng double precision,
+  CONSTRAINT users_accountaddress_pkey PRIMARY KEY (id),
+  CONSTRAINT users_accountaddress_account_id_008e3d20_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_accountban (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reason_ban text NOT NULL,
+  banned_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  CONSTRAINT users_accountban_pkey PRIMARY KEY (id),
+  CONSTRAINT users_accountban_account_id_d84335c3_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_accountbranchlocation (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  lat double precision,
+  lng double precision,
+  formatted_address text,
+  barangay character varying,
+  label character varying NOT NULL,
+  is_main boolean NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL,
+  branch_type character varying,
+  CONSTRAINT users_accountbranchlocation_pkey PRIMARY KEY (id),
+  CONSTRAINT users_accountbranchl_account_id_0122dab0_fk_users_acc FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_accountrole (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  account_role character varying NOT NULL,
+  appointed_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL,
+  CONSTRAINT users_accountrole_pkey PRIMARY KEY (id),
+  CONSTRAINT users_accountrole_account_id_f8f1a245_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_accountwarning (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reason_warning text NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  issuer_id bigint NOT NULL,
+  receiver_id bigint NOT NULL,
+  CONSTRAINT users_accountwarning_pkey PRIMARY KEY (id),
+  CONSTRAINT users_accountwarning_issuer_id_12fcbdf6_fk_users_account_id FOREIGN KEY (issuer_id) REFERENCES public.users_account(id),
+  CONSTRAINT users_accountwarning_receiver_id_b8c1c56d_fk_users_account_id FOREIGN KEY (receiver_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_admin (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  profile_photo character varying,
+  contact_number character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  is_superadmin boolean NOT NULL,
+  CONSTRAINT users_admin_pkey PRIMARY KEY (id),
+  CONSTRAINT users_admin_account_id_51137377_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_cashoutrequest (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  role character varying,
+  tokens integer NOT NULL,
+  amount_php numeric NOT NULL,
+  payout_method character varying NOT NULL,
+  payout_number character varying NOT NULL,
+  status character varying NOT NULL,
+  external_reference character varying,
+  requested_at timestamp with time zone NOT NULL,
+  processed_at timestamp with time zone,
+  account_id bigint NOT NULL,
+  CONSTRAINT users_cashoutrequest_pkey PRIMARY KEY (id),
+  CONSTRAINT users_cashoutrequest_account_id_03f57c41_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_client (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  profile_photo character varying,
+  contact_number character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  CONSTRAINT users_client_pkey PRIMARY KEY (id),
+  CONSTRAINT users_client_account_id_5f07b278_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_emailverification (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  email character varying NOT NULL,
+  verification_code character varying NOT NULL,
+  status character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  expires_at timestamp with time zone NOT NULL,
+  verified_at timestamp with time zone,
+  CONSTRAINT users_emailverification_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.users_favoritemechanic (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  client_id bigint NOT NULL,
+  mechanic_id bigint NOT NULL,
+  CONSTRAINT users_favoritemechanic_pkey PRIMARY KEY (id),
+  CONSTRAINT users_favoritemechanic_client_id_6324f396_fk_users_client_id FOREIGN KEY (client_id) REFERENCES public.users_client(id),
+  CONSTRAINT users_favoritemechan_mechanic_id_30c21c13_fk_users_mec FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id)
+);
+CREATE TABLE public.users_favoriteshop (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  client_id bigint NOT NULL,
+  shop_id bigint NOT NULL,
+  CONSTRAINT users_favoriteshop_pkey PRIMARY KEY (id),
+  CONSTRAINT users_favoriteshop_client_id_8cb75c9b_fk_users_client_id FOREIGN KEY (client_id) REFERENCES public.users_client(id),
+  CONSTRAINT users_favoriteshop_shop_id_f77fe10e_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.users_mechanic (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  profile_photo character varying,
+  contact_number character varying,
+  average_rating numeric NOT NULL,
+  is_working_for_shop boolean NOT NULL,
+  status character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  shop_id bigint,
+  bio text,
+  rejection_note text,
+  verification_status character varying NOT NULL,
+  verified_at timestamp with time zone,
+  payout_method character varying,
+  payout_number character varying,
+  is_locked boolean NOT NULL,
+  cooldown_until timestamp with time zone,
+  no_show_count integer NOT NULL CHECK (no_show_count >= 0),
+  CONSTRAINT users_mechanic_pkey PRIMARY KEY (id),
+  CONSTRAINT users_mechanic_account_id_52f85882_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id),
+  CONSTRAINT users_mechanic_shop_id_7c456695_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.users_mechanicdocument (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  document_name character varying NOT NULL,
+  document_type character varying NOT NULL,
+  document_file character varying NOT NULL,
+  date_issued date,
+  date_expiry date,
+  uploaded_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  mechanic_id bigint NOT NULL,
+  CONSTRAINT users_mechanicdocument_pkey PRIMARY KEY (id),
+  CONSTRAINT users_mechanicdocume_mechanic_id_b5d381a3_fk_users_mec FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id)
+);
+CREATE TABLE public.users_mechanicreview (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  rating smallint NOT NULL CHECK (rating >= 0),
+  comment text,
+  created_at timestamp with time zone NOT NULL,
+  mechanic_id bigint NOT NULL,
+  reviewer_id bigint NOT NULL,
+  CONSTRAINT users_mechanicreview_pkey PRIMARY KEY (id),
+  CONSTRAINT users_mechanicreview_mechanic_id_f452386d_fk_users_mechanic_id FOREIGN KEY (mechanic_id) REFERENCES public.users_mechanic(id),
+  CONSTRAINT users_mechanicreview_reviewer_id_8999e11c_fk_users_account_id FOREIGN KEY (reviewer_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_passwordreset (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reset_token character varying NOT NULL UNIQUE,
+  status character varying NOT NULL,
+  requested_at timestamp with time zone NOT NULL,
+  used_at timestamp with time zone,
+  expires_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL,
+  CONSTRAINT users_passwordreset_pkey PRIMARY KEY (id),
+  CONSTRAINT users_passwordreset_account_id_4fb618c7_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_reportaccount (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  reason text NOT NULL,
+  status character varying NOT NULL,
+  reported_at timestamp with time zone NOT NULL,
+  reviewed_at timestamp with time zone,
+  admin_action_notes text,
+  reported_id bigint NOT NULL,
+  reporter_id bigint NOT NULL,
+  CONSTRAINT users_reportaccount_pkey PRIMARY KEY (id),
+  CONSTRAINT users_reportaccount_reported_id_764245e3_fk_users_account_id FOREIGN KEY (reported_id) REFERENCES public.users_account(id),
+  CONSTRAINT users_reportaccount_reporter_id_724b6744_fk_users_account_id FOREIGN KEY (reporter_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_shopemployee (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  profile_photo character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  shop_id bigint NOT NULL,
+  is_admin boolean NOT NULL,
+  CONSTRAINT users_shopemployee_pkey PRIMARY KEY (id),
+  CONSTRAINT users_shopemployee_account_id_5a8d8bb2_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id),
+  CONSTRAINT users_shopemployee_shop_id_3e11e80c_fk_shops_shop_id FOREIGN KEY (shop_id) REFERENCES public.shops_shop(id)
+);
+CREATE TABLE public.users_shopowner (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  profile_photo character varying,
+  contact_number character varying,
+  owns_shop boolean NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  rejection_note text,
+  verification_status character varying NOT NULL,
+  verified_at timestamp with time zone,
+  payout_method character varying,
+  payout_number character varying,
+  CONSTRAINT users_shopowner_pkey PRIMARY KEY (id),
+  CONSTRAINT users_shopowner_account_id_720f8763_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_smsotpverification (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  contact_number character varying NOT NULL,
+  otp_code character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  expires_at timestamp with time zone NOT NULL,
+  is_verified boolean NOT NULL,
+  verified_at timestamp with time zone,
+  account_id bigint,
+  CONSTRAINT users_smsotpverification_pkey PRIMARY KEY (id),
+  CONSTRAINT users_smsotpverifica_account_id_35afcedf_fk_users_acc FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_tokenpurchase (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  tokens_amount integer NOT NULL,
+  price numeric NOT NULL,
+  payment_method character varying,
+  status character varying NOT NULL,
+  purchased_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL,
+  ewallet_source_id character varying,
+  external_reference character varying,
+  CONSTRAINT users_tokenpurchase_pkey PRIMARY KEY (id),
+  CONSTRAINT users_tokenpurchase_account_id_7f10c625_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_tokentransaction (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  tokens integer NOT NULL,
+  reason character varying NOT NULL,
+  related_booking_id integer,
+  created_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL,
+  CONSTRAINT users_tokentransaction_pkey PRIMARY KEY (id),
+  CONSTRAINT users_tokentransaction_account_id_fde54cb8_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.users_wallet (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  balance numeric NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  account_id bigint NOT NULL UNIQUE,
+  CONSTRAINT users_wallet_pkey PRIMARY KEY (id),
+  CONSTRAINT users_wallet_account_id_240b747b_fk_users_account_id FOREIGN KEY (account_id) REFERENCES public.users_account(id)
+);
+CREATE TABLE public.vehicles_vehiclebrand (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  type_id bigint NOT NULL,
+  CONSTRAINT vehicles_vehiclebrand_pkey PRIMARY KEY (id),
+  CONSTRAINT vehicles_vehiclebran_type_id_0e11bc01_fk_vehicles_ FOREIGN KEY (type_id) REFERENCES public.vehicles_vehicletype(id)
+);
+CREATE TABLE public.vehicles_vehiclemodel (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL,
+  subcategory character varying,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  brand_id bigint NOT NULL,
+  CONSTRAINT vehicles_vehiclemodel_pkey PRIMARY KEY (id),
+  CONSTRAINT vehicles_vehiclemode_brand_id_13589b08_fk_vehicles_ FOREIGN KEY (brand_id) REFERENCES public.vehicles_vehiclebrand(id)
+);
+CREATE TABLE public.vehicles_vehicletype (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  name character varying NOT NULL UNIQUE,
+  created_at timestamp with time zone NOT NULL,
+  updated_at timestamp with time zone NOT NULL,
+  CONSTRAINT vehicles_vehicletype_pkey PRIMARY KEY (id)
+);
