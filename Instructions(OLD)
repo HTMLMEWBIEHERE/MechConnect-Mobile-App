@@ -1,0 +1,81 @@
+Instruction
+
+Set this up on the backend so it can connect to the database.
+
+Add a virtual environment:
+
+cd backend
+python -m venv venv
+
+Then activate it and run:
+
+pip install -r requirements.txt
+
+Make sure you're inside the backend directory first; otherwise, this won't work.
+
+Next, create a file named `.env` inside the backend folder.
+
+Paste the contents that I sent in the group chat into the `.env` file (message me if you can't find it).
+
+After that, test it by running:
+
+python manage.py migrate
+
+Make sure the virtual environment is activated. If everything works, you're ready to start.
+
+To run and test the project:
+
+Backend:
+
+cd backend
+venv\Scripts\activate
+python manage.py runserver
+
+Then open a new terminal:
+
+cd ..
+deactivate
+cd frontend-mobile   (or frontend-web)
+
+For frontend-mobile:
+
+npm install
+npx expo start
+
+Then scan the QR code using your phone (install Expo Go from the Play Store), or use the URL shown in the terminal after running `npx expo start`.
+
+For frontend-web:
+
+npm install
+npm run dev
+
+Then simply open the local URL provided.
+
+You'll need two terminals running at the same time—one for the backend and one for the frontend.
+
+If you want to use a local database:
+
+First, complete all the setup instructions above.
+
+Create a database in XAMPP named:
+
+mechconnect_se2
+
+Then go to:
+
+backend/.env
+
+Read the comment for the `USE_SUPABASE` variable.
+
+If `USE_SUPABASE` is set to `false`, run the migrations to create the tables in your local database:
+
+python manage.py makemigrations
+python manage.py migrate
+
+Make sure you're inside the backend directory and that the virtual environment is activated before running these commands.
+
+Complete the setup instructions above before doing this part.
+
+For building the Android app:
+
+eas build -p android --profile preview
